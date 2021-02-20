@@ -8,12 +8,17 @@ const catchAsync = require('../utils/catchAsync');
 
 const { User } = require('../models/index');
 
-// 7 days
-const jwtExpires = 7 * 24 * 60 * 60 * 1000;
+// 1 day
+const jwtExpires = 1 * 24 * 60 * 60 * 1000;
+
+// Implement refresh token:
+// https://hasura.io/blog/best-practices-of-using-jwt-with-graphql/
+// https://stackoverflow.com/questions/52617942/how-to-use-a-jwt-refresh-token-to-generate-a-new-access-token
+// https://github.com/WebDevSimplified/JWT-Authentication
 
 // TODO: Create token
 const signToken = async (id) => {
-  return await jwt.sign({ id: id }, process.env.JWT_SECRET, {
+  return await jwt.sign({ id: id }, process.env.JWT_ACCESS_SECRET, {
     // expires in 7 days
     expiresIn: jwtExpires,
   });
@@ -35,6 +40,7 @@ const createSendToken = async (user, statusCode, res) => {
   return res.status(statusCode).json({
     status: 'success',
     token,
+    tokenExpiration: new Date(Date.now() + jwtExpires - 5000),
     data: {
       user,
     },
@@ -45,6 +51,7 @@ const createSendToken = async (user, statusCode, res) => {
 exports.register = catchAsync(async (req, res, next) => {
   const user = await User.create(req.body);
   if (user) {
+    user.password = undefined;
     createSendToken(user, 201, res);
   }
 });
@@ -62,7 +69,7 @@ exports.login = catchAsync(async (req, res, next) => {
       email: req.body.email,
     },
     attributes: {
-      exclude: ['password', 'createdAt', 'updatedAt'],
+      exclude: ['createdAt', 'updatedAt'],
     },
   });
 
@@ -121,7 +128,7 @@ exports.protectBearer = catchAsync(async (req, res, next) => {
   }
 
   // 2) Verify token
-  const verify = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+  const verify = await promisify(jwt.verify)(token, process.env.JWT_ACCESS_SECRET);
 
   // 3) Check if user exist
   const user = await User.findOne({

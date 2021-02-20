@@ -5,7 +5,11 @@
   "main": "app.js",
   "scripts": {
     "dev": "nodemon app.js",
-    "prod": "node app.js"
+    "prod": "node app.js",
+    "undo:all": "npx sequelize db:migrate:undo:all",
+    "migrate:all": "npx sequelize db:migrate",
+    "db:reset": "npm run undo:all && npm run migrate:all",
+    "seed:all": "npx sequelize db:seed:all"
   },
   "repository": {
     "type": "git",
@@ -35,6 +39,8 @@
     "mysql2": "^2.2.5",
     "pug": "^3.0.0",
     "sequelize": "^6.5.0",
+    "swagger-jsdoc": "^3.4.0",
+    "swagger-ui-express": "^4.1.6",
     "winston": "^3.3.3",
     "winston-daily-rotate-file": "^4.5.0",
     "xss-clean": "^0.1.1"

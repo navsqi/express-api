@@ -109,3 +109,5 @@ Thumbs.db
 !.editorconfig
 !.phpcs.xml.dist
 !.env.example
+!.prettierc
+!.eslintrc.json

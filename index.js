@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 // export module
 const express = require('express');
 const app = express();
@@ -64,9 +66,19 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Router
 const userRouter = require('./routes/userRoute');
+const authRouter = require('./routes/authRoute');
 
 // Routes
 app.use(`/api/v1/users`, userRouter);
+app.use(`/api/v1/auth`, authRouter);
+
+const swaggerJsDoc = require('swagger-jsdoc');
+
+const swaggerUi = require('swagger-ui-express');
+const swaggerOptions = require('./swagger.json');
+const swaggerDocs = swaggerJsDoc(swaggerOptions);
+
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // Handle route not found
 app.all('*', (req, res, next) => {

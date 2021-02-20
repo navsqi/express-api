@@ -1,5 +1,8 @@
 'use strict';
 const { Model } = require('sequelize');
+const crypto = require('crypto');
+const AppError = require('../utils/AppError');
+
 const bcrypt = require('bcryptjs');
 
 module.exports = (sequelize, DataTypes) => {
@@ -18,7 +21,7 @@ module.exports = (sequelize, DataTypes) => {
       name: DataTypes.STRING,
       email: {
         type: DataTypes.STRING,
-        unique: true,
+        unique: { msg: 'Email address already in use!' },
         allowNull: false,
         validate: {
           isEmail: {
@@ -75,10 +78,22 @@ module.exports = (sequelize, DataTypes) => {
       sequelize,
       modelName: 'User',
       tableName: 'users',
+      indexes: [
+        {
+          unique: true,
+          fields: ['email'],
+        },
+      ],
     }
   );
 
   User.addHook('beforeCreate', async (user, options) => {
+    // let findUser = await User.findOne({
+    //   where: { email: user.email },
+    // });
+
+    // if (findUser) throw new AppError('Email already exist', 400);
+
     if (user.password) {
       const salt = await bcrypt.genSalt(8);
       user.password = await bcrypt.hash(user.password, salt);
