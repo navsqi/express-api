@@ -1,4 +1,3 @@
-const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const { promisify } = require('util');
 const jwt = require('jsonwebtoken');
@@ -28,15 +27,6 @@ const signToken = async (id) => {
 const createSendToken = async (user, statusCode, res) => {
   const token = await signToken(user.id);
 
-  // const cookieOptions = {
-  //   expires: new Date(Date.now() + jwtExpires),
-  //   httpOnly: true,
-  // };
-
-  // if (process.env.NODE_ENV == 'production') cookieOptions.secure = true;
-
-  // res.cookie('jwt', token, cookieOptions);
-
   return res.status(statusCode).json({
     status: 'success',
     token,
@@ -49,7 +39,15 @@ const createSendToken = async (user, statusCode, res) => {
 
 // TODO: Register
 exports.register = catchAsync(async (req, res, next) => {
-  const user = await User.create(req.body);
+  const { name, email, phoneNumber, password } = req.body;
+
+  const user = await User.create({
+    name,
+    email,
+    phoneNumber,
+    password,
+  });
+
   if (user) {
     user.password = undefined;
     createSendToken(user, 201, res);
@@ -84,8 +82,8 @@ exports.login = catchAsync(async (req, res, next) => {
   return createSendToken(user, 200, res);
 });
 
-//TODO: Protect Middleware
-exports.protectKey = catchAsync(async (req, res, next) => {
+//TODO: Protect Middleware (API Key)
+const ApiKey = catchAsync(async (req, res, next) => {
   // 1) Check if token exist
 
   let apiKey;
@@ -113,8 +111,8 @@ exports.protectKey = catchAsync(async (req, res, next) => {
   next();
 });
 
-//TODO: Protect Middleware
-exports.protectBearer = catchAsync(async (req, res, next) => {
+//TODO: Protect Middleware (Bearer)
+const Bearer = catchAsync(async (req, res, next) => {
   // 1) Check if token exist
   let token;
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
@@ -147,13 +145,19 @@ exports.protectBearer = catchAsync(async (req, res, next) => {
   next();
 });
 
+// TODO: protect
+exports.protect = (type) => {
+  if (type === 'Bearer') return Bearer;
+  if (type === 'ApiKey') return ApiKey;
+};
+
 // TODO: Logout
 exports.logout = async (req, res, next) => {
   // delete cookie
   res.clearCookie('jwt');
 };
 
-exports.allowTo = (...roles) => {
+exports.role = (...roles) => {
   return (req, res, next) => {
     // roles: ['admin', 'user']
 

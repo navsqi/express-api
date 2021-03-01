@@ -72,6 +72,7 @@ const authRouter = require('./routes/authRoute');
 app.use(`/api/v1/users`, userRouter);
 app.use(`/api/v1/auth`, authRouter);
 
+// Swagger Docs
 const swaggerJsDoc = require('swagger-jsdoc');
 
 const swaggerUi = require('swagger-ui-express');

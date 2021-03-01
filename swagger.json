@@ -3,7 +3,7 @@
     "openapi": "3.0.0",
     "info": {
       "title": "Online Shop",
-      "description": "Customer API Information",
+      "description": "Online Shop API Information",
       "termsOfService": "https://smartbear.com/term-of-use",
       "version": "1.0.0",
       "contact": {
@@ -29,8 +29,8 @@
     "schemes": ["http"],
     "tags": [
       {
-        "name": "Uustomers",
-        "description": "All about customers data request"
+        "name": "Users",
+        "description": "All about users data request"
       }
     ],
     "components": {
@@ -115,16 +115,12 @@
           }
         },
         "Unauthorized": {
-          "description": "Unauthorized",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Error"
-              },
-              "example": {
-                "code": 401,
-                "message": "Please authenticate"
-              }
+          "type": "object",
+          "properties": {
+            "status": { "type": "string", "example": "fail" },
+            "message": {
+              "type": "string",
+              "example": "You are not logged in! Please log in to get access"
             }
           }
         },
@@ -155,13 +151,88 @@
               }
             }
           }
+        },
+        "GetUsers": {
+          "type": "object",
+          "properties": {
+            "status": { "type": "string", "example": "success" },
+            "count": { "type": "number", "example": "50" },
+            "results": { "type": "number", "example": "10" },
+            "data": {
+              "type": "object",
+              "properties": {
+                "users": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": { "type": "number", "example": "50" },
+                      "name": { "type": "string", "example": "WAYNE WATSICA" },
+                      "email": {
+                        "type": "string",
+                        "example": "carleton.bogisich33@hotmail.com"
+                      },
+                      "phoneNumber": { "type": "string", "example": "4267027649" },
+                      "password": {
+                        "type": "string",
+                        "example": "$2a$08$J.gYPG4tIeOTsTsOPauC5OC.6uinjSExXJhrPuXIrvPrsVp18T45S"
+                      },
+                      "photo": {
+                        "type": "string",
+                        "example": "https://s3.amazonaws.com/uifaces/faces/twitter/bennyjien/128.jpg"
+                      },
+                      "role": { "type": "string", "example": "admin" },
+                      "apiKey": {
+                        "type": "string",
+                        "example": "0xccc438e34ed6ed3fc878cbab44c2184e0e3c8a12"
+                      },
+                      "active": { "type": "boolean", "example": "true" },
+                      "activationToken": {
+                        "type": "string",
+                        "example": "MAMoZACciDkNMzcyaiCj9FAkFvAX"
+                      },
+                      "resetToken": {
+                        "type": "string",
+                        "nullable": true,
+                        "example": "null"
+                      },
+                      "createdAt": {
+                        "type": "date",
+                        "nullable": true,
+                        "example": "2020-11-06 13:49:28"
+                      },
+                      "updatedAt": {
+                        "type": "date",
+                        "nullable": true,
+                        "example": "2020-11-06 13:49:28"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       },
       "securitySchemes": {
-        "bearerAuth": {
+        "BearerAuth": {
           "type": "http",
           "scheme": "bearer",
           "bearerFormat": "JWT"
+        }
+      },
+      "parameters": {
+        "page": {
+          "in": "query",
+          "name": "page",
+          "example": 1,
+          "description": "Active page number"
+        },
+        "limit": {
+          "in": "query",
+          "name": "limit",
+          "example": 10,
+          "description": "Total rows per-page"
         }
       }
     }

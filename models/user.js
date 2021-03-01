@@ -88,18 +88,12 @@ module.exports = (sequelize, DataTypes) => {
   );
 
   User.addHook('beforeCreate', async (user, options) => {
-    // let findUser = await User.findOne({
-    //   where: { email: user.email },
-    // });
-
-    // if (findUser) throw new AppError('Email already exist', 400);
-
     if (user.password) {
       const salt = await bcrypt.genSalt(8);
       user.password = await bcrypt.hash(user.password, salt);
 
       const apiKey = crypto
-        .createHash('sha256')
+        .createHash('sha224')
         .update(`${user.email}${Date.now}`)
         .digest('hex');
 

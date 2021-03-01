@@ -3,7 +3,7 @@ const router = express.Router();
 
 const userController = require('../controllers/userController');
 
-const { allowTo, protect, protectAPIKey } = require('../middlewares/auth');
+const { protect, role } = require('../middlewares/auth');
 
 // http://localhost:5000/api/v1/users?page=1&limit=10&order=id:ASC
 /**
@@ -15,17 +15,24 @@ const { allowTo, protect, protectAPIKey } = require('../middlewares/auth');
  *    tags:
  *      - Users
  *    description: Use to request all users
+ *    parameters:
+ *      - $ref: '#/components/parameters/page'
+ *      - $ref: '#/components/parameters/limit'
  *    responses:
  *      '200':
- *        description: A successful response
  *        content:
  *          application/json:
  *            schema:
- *              $ref: '#/components/schemas/User'
+ *              $ref: '#/components/responses/GetUsers'
  *      '403':
- *        $ref: '#/components/responses/Unauthorized'
+ *        content:
+ *          application/json:
+ *            schema:
+ *              $ref: '#/components/responses/Unauthorized'
  *
  */
-router.get('/', userController.getUsers);
+router
+  .route('/')
+  .get(protect('Bearer'), role('superadmin', 'admin'), userController.getUsers);
 
 module.exports = router;
