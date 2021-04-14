@@ -5,7 +5,7 @@ const path = require('path');
 const Sequelize = require('sequelize');
 const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || 'development';
-const config = require(__dirname + '/../config/config.js')[env];
+const config = require(__dirname + '/../config/db.js')[env];
 const logger = require(__dirname + '/../utils/winstonLog');
 const db = {};
 
@@ -21,7 +21,7 @@ if (sequelize) {
     .authenticate()
     .then(() => {
       logger.info(`DB connection established: ${config.database}`);
-      console.log(`DB connection established: ${config.database}`);
+      console.info(`DB connection established: ${config.database}`);
     })
     .catch((err) => {
       logger.error(err);

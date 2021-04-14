@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
 
-const userController = require('../controllers/userController');
+const userController = require('../../controllers/userController');
 
-const { protect, role } = require('../middlewares/auth');
+const auth = require('../../middlewares/auth');
 
 // http://localhost:5000/api/v1/users?page=1&limit=10&order=id:ASC
 /**
@@ -31,8 +31,6 @@ const { protect, role } = require('../middlewares/auth');
  *              $ref: '#/components/responses/Unauthorized'
  *
  */
-router
-  .route('/')
-  .get(protect('Bearer'), role('superadmin', 'admin'), userController.getUsers);
+router.route('/').get(auth('superadmin'), userController.getUsers);
 
 module.exports = router;

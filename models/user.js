@@ -1,7 +1,8 @@
 'use strict';
 const { Model } = require('sequelize');
 const crypto = require('crypto');
-const AppError = require('../utils/AppError');
+const dayjs = require('dayjs');
+const config = require('../config/config');
 
 const bcrypt = require('bcryptjs');
 
@@ -13,7 +14,10 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // define association here
+      User.hasMany(models.Token, {
+        foreignKey: 'userId',
+        as: 'tokens',
+      });
     }
   }
   User.init(
@@ -94,12 +98,16 @@ module.exports = (sequelize, DataTypes) => {
 
       const apiKey = crypto
         .createHash('sha224')
-        .update(`${user.email}${Date.now}`)
+        .update(`${config.apiKeyPrefix}-${user.email}-${dayjs().format('YYYYMMDDHH')}`)
         .digest('hex');
 
       user.apiKey = apiKey;
     }
   });
+
+  User.prototype.comparePassword = async (passwordBody, passwordDB) => {
+    return await bcrypt.compare(passwordBody, passwordDB);
+  };
 
   return User;
 };

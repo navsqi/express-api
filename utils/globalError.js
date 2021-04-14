@@ -107,6 +107,7 @@ module.exports = (err, req, res, next) => {
   err.status = err.status || 'error';
 
   if (process.env.NODE_ENV === 'development') {
+    // console.log(err);
     sendErrorDev(err, req, res);
   } else if (process.env.NODE_ENV === 'production') {
     let error = { ...err };
@@ -119,8 +120,7 @@ module.exports = (err, req, res, next) => {
     if (error.name === 'SequelizeUniqueConstraintError')
       error = handleDuplicateFieldsDB(error);
     if (error.name === 'SequelizeDatabaseError') error = handleDatabaseError(error);
-    if (error.name === 'SequelizeValidationError')
-      error = handleValidationErrorDB(error);
+    if (error.name === 'SequelizeValidationError') error = handleValidationErrorDB(error);
     if (error.name === 'JsonWebTokenError') error = handleJWTError();
     if (error.name === 'TokenExpiredError') error = handleJWTExpiredError();
 

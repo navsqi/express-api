@@ -4,19 +4,24 @@ require('dotenv').config();
 const express = require('express');
 const app = express();
 
+const passport = require('passport');
+const { jwtStrategy } = require('./config/passport');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
 const cors = require('cors');
-const rateLimit = require('express-rate-limit');
 const compression = require('compression');
 const xss = require('xss-clean');
 const helmet = require('helmet');
+const swaggerJsDoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
 
 // export custom module
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./utils/globalError');
 const loggerFile = require('./utils/winstonLog');
+const { apiLimiter, authLimiter } = require('./middlewares/rateLimiter');
+const swaggerOptions = require('./swagger.json');
 
 // set up for production
 if (process.env.NODE_ENV === 'production') {
@@ -27,10 +32,16 @@ if (process.env.NODE_ENV === 'production') {
     process.exit(1);
   });
 
-  app.use(cors());
-  app.options('*', cors());
   app.set('trust proxy', 1);
 }
+
+// CORS
+app.use(cors());
+app.options('*', cors());
+
+// jwt authentication
+passport.use('jwt', jwtStrategy);
+app.use(passport.initialize());
 
 // morgan logger in development
 if (process.env.NODE_ENV === 'development') app.use(morgan('dev'));
@@ -41,6 +52,8 @@ app.set('views', path.join(__dirname, 'views'));
 
 // body parser, reading data from body into req.body
 app.use(express.json({ limit: '20mb' }));
+// Serve static files
+app.use(express.static(path.join(__dirname, 'public')));
 // body parser, reading data from form into req.body
 app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 // Cookie parser, reading data from cookies into req.cookies
@@ -48,35 +61,24 @@ app.use(cookieParser());
 // use security HTTP headers
 app.use(helmet());
 
-const limiter = rateLimit({
-  max: 150,
-  windowsMs: 1 * 60 * 1000,
-  message: {
-    status: 'fail',
-    message: 'Too many request created from this IP, please try again after a minute',
-  },
-});
-
-app.use('/api', limiter);
 app.use(xss());
 app.use(compression());
 
-// Serve static files
-app.use(express.static(path.join(__dirname, 'public')));
+// api request limiter
+app.use('/api', apiLimiter);
+
+// limit repeated failed requests to auth endpoints
+if (process.env.NODE_ENV === 'production') {
+  app.use('/api/v1/auth', authLimiter);
+}
 
 // Router
-const userRouter = require('./routes/userRoute');
-const authRouter = require('./routes/authRoute');
+const routerV1 = require('./routes/v1/index');
 
 // Routes
-app.use(`/api/v1/users`, userRouter);
-app.use(`/api/v1/auth`, authRouter);
+app.use(`/api/v1`, routerV1);
 
 // Swagger Docs
-const swaggerJsDoc = require('swagger-jsdoc');
-
-const swaggerUi = require('swagger-ui-express');
-const swaggerOptions = require('./swagger.json');
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
 
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
