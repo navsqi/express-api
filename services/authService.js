@@ -61,7 +61,6 @@ const loginWithEmailAndPassword = async (body) => {
  */
 const refreshAuth = async (refreshToken) => {
   try {
-    console.log('EWEWEWE');
     const refreshTokenDoc = await tokenService.verifyToken(
       refreshToken,
       tokenTypes.REFRESH
